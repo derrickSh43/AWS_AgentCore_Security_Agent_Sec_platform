@@ -1,4 +1,4 @@
-<img width="1274" height="875" alt="image" src="https://github.com/user-attachments/assets/9acbd7db-0c8e-464e-9445-a2a07d61e15b" />
+<img width="1274" height="875" alt="image" src="https://github.com/derrickSh43/AWS_AgentCore_Security_Agent_Sec_platform/blob/main/Screenshot%202026-05-24%20173604.png" />
 
 ## EKS Security Operations Platform — Architecture & Design
 
