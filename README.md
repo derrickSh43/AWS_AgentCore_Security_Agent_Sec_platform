@@ -4,7 +4,6 @@
 
 A layered, AWS-native security operations platform built around an existing EKS cluster. Deterministic scanners produce normalized findings that feed an AI reasoning layer. The AI can query data, summarize risk, and propose fixes — but every cluster change requires a human-reviewed pull request merged through ArgoCD.
 
-> **Architecture diagram:** [`architecture.html`](architecture.html) — open locally or in a browser to screenshot.
 
 ---
 
