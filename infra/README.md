@@ -2,7 +2,7 @@
 
 This tree is a scaffold for a layered security and operations pipeline around an existing EKS cluster.
 
-→ **[PLATFORM.md](PLATFORM.md)** — full architecture, data flow, future additions, and Wiz/Tenable comparison
+See **[PLATFORM.md](PLATFORM.md)** for full architecture, data flow, future additions, and Wiz/Tenable comparison.
 
 The Terraform is intentionally explicit. It does not use a generic scanner module, scanner maps, or `for_each` loops to hide major platform components. Each layer has its own module because Falco, Prowler, Snyk, AgentCore, AWS Security Agent, AWS DevOps Agent, the dashboard, and ArgoCD all have different trust boundaries and failure modes.
 
