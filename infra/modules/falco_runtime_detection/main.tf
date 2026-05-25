@@ -1,6 +1,7 @@
 resource "aws_cloudwatch_log_group" "falco_runtime_alerts" {
   name              = "/aws/eks/${var.eks_cluster_name}/${var.platform_name}/falco-runtime-alerts"
   retention_in_days = 30
+  kms_key_id        = var.findings_kms_key_arn
 }
 
 data "aws_iam_policy_document" "falco_irsa_assume_role" {
@@ -199,6 +200,18 @@ data "aws_iam_policy_document" "falco_finding_normalizer_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "falco_finding_normalizer_policy" {
@@ -221,6 +234,10 @@ resource "aws_lambda_function" "falco_finding_normalizer" {
   timeout          = 60
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {

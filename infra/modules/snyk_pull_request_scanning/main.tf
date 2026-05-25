@@ -124,6 +124,18 @@ data "aws_iam_policy_document" "snyk_finding_normalizer_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "snyk_finding_normalizer_policy" {
@@ -146,6 +158,10 @@ resource "aws_lambda_function" "snyk_finding_normalizer" {
   timeout          = 60
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -171,6 +187,12 @@ resource "aws_apigatewayv2_api" "snyk_webhook_api" {
   protocol_type = "HTTP"
 }
 
+resource "aws_cloudwatch_log_group" "snyk_webhook_api_access_logs" {
+  name              = "/aws/apigateway/${var.organization_name}-${var.environment_name}-${var.platform_name}-snyk-webhook"
+  retention_in_days = 90
+  kms_key_id        = var.findings_kms_key_arn
+}
+
 resource "aws_apigatewayv2_integration" "snyk_webhook_lambda_integration" {
   api_id                 = aws_apigatewayv2_api.snyk_webhook_api.id
   integration_type       = "AWS_PROXY"
@@ -188,6 +210,21 @@ resource "aws_apigatewayv2_stage" "snyk_webhook_stage" {
   api_id      = aws_apigatewayv2_api.snyk_webhook_api.id
   name        = "$default"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.snyk_webhook_api_access_logs.arn
+    format = jsonencode({
+      requestId        = "$context.requestId"
+      ip               = "$context.identity.sourceIp"
+      requestTime      = "$context.requestTime"
+      httpMethod       = "$context.httpMethod"
+      routeKey         = "$context.routeKey"
+      status           = "$context.status"
+      protocol         = "$context.protocol"
+      responseLength   = "$context.responseLength"
+      integrationError = "$context.integrationErrorMessage"
+    })
+  }
 
   default_route_settings {
     throttling_burst_limit = var.webhook_throttling_burst_limit

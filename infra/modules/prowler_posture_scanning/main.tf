@@ -1,6 +1,7 @@
 resource "aws_cloudwatch_log_group" "prowler_scan_logs" {
   name              = "/aws/${var.organization_name}/${var.environment_name}/${var.platform_name}/prowler-scans"
   retention_in_days = 30
+  kms_key_id        = var.findings_kms_key_arn
 }
 
 resource "aws_s3_bucket" "prowler_raw_findings" {
@@ -33,6 +34,12 @@ resource "aws_s3_bucket_public_access_block" "prowler_raw_findings_public_access
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_logging" "prowler_raw_findings_access_logging" {
+  bucket        = aws_s3_bucket.prowler_raw_findings.id
+  target_bucket = var.s3_access_logs_bucket
+  target_prefix = "prowler-raw-findings/"
 }
 
 resource "kubernetes_namespace_v1" "prowler" {
@@ -329,6 +336,18 @@ data "aws_iam_policy_document" "prowler_finding_normalizer_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "prowler_finding_normalizer_policy" {
@@ -351,6 +370,10 @@ resource "aws_lambda_function" "prowler_finding_normalizer" {
   timeout          = 300
   memory_size      = 512
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {

@@ -98,6 +98,7 @@ resource "awscc_devopsagent_association" "monitoring_account_association" {
 resource "aws_cloudwatch_log_group" "devops_agent_logs" {
   name              = "/aws/${var.organization_name}/${var.environment_name}/${var.platform_name}/devops-agent"
   retention_in_days = 90
+  kms_key_id        = var.findings_kms_key_arn
 }
 
 data "aws_iam_policy_document" "devops_agent_ingestor_assume_role" {
@@ -175,6 +176,18 @@ data "aws_iam_policy_document" "devops_agent_ingestor_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "devops_agent_ingestor_policy" {
@@ -197,6 +210,10 @@ resource "aws_lambda_function" "ingest_devops_agent_insights" {
   timeout          = 120
   memory_size      = 512
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {

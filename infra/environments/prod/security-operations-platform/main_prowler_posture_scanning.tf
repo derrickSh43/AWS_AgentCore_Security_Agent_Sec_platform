@@ -15,6 +15,7 @@ module "prod_prowler_posture_scanning" {
   normalized_findings_table_name  = module.prod_normalized_findings_pipeline.normalized_findings_table_name
   normalized_findings_table_arn   = module.prod_normalized_findings_pipeline.normalized_findings_table_arn
   raw_findings_archive_bucket     = module.prod_normalized_findings_pipeline.raw_findings_archive_bucket_name
+  s3_access_logs_bucket           = module.prod_normalized_findings_pipeline.security_findings_access_logs_bucket_name
   findings_kms_key_arn            = module.prod_normalized_findings_pipeline.security_findings_kms_key_arn
   lambda_package_path             = coalesce(var.lambda_package_path_prowler_normalizer, data.archive_file.security_operations_lambda_handlers.output_path)
   lambda_package_source_code_hash = data.archive_file.security_operations_lambda_handlers.output_base64sha256

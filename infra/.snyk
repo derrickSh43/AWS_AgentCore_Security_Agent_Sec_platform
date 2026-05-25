@@ -1,0 +1,9 @@
+# Snyk policy for IaC findings that are intentionally managed outside Terraform.
+version: v1.25.0
+ignore:
+  SNYK-CC-TF-45:
+    - 'modules\normalized_findings_pipeline\main.tf > input > resource > aws_s3_bucket[security_findings_access_logs] > logging':
+        reason: Terminal S3 access log sink; logging it to itself creates recursive log delivery.
+  SNYK-CC-TF-127:
+    - 'modules\normalized_findings_pipeline\main.tf > resource > aws_s3_bucket_versioning[security_findings_access_logs_versioning] > versioning_configuration > mfa_delete':
+        reason: MFA delete requires manual root-authenticated S3 configuration if the team chooses to enable it.

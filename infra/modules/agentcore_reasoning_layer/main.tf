@@ -240,6 +240,18 @@ data "aws_iam_policy_document" "agentcore_tool_lambda_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "agentcore_tool_lambda_policy" {
@@ -263,6 +275,10 @@ resource "aws_lambda_function" "query_falco_findings_tool" {
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
 
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       NORMALIZED_FINDINGS_TABLE = var.normalized_findings_table_name
@@ -281,6 +297,10 @@ resource "aws_lambda_function" "query_prowler_findings_tool" {
   timeout          = 60
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -301,6 +321,10 @@ resource "aws_lambda_function" "query_snyk_findings_tool" {
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
 
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       NORMALIZED_FINDINGS_TABLE = var.normalized_findings_table_name
@@ -319,6 +343,10 @@ resource "aws_lambda_function" "query_security_agent_findings_tool" {
   timeout          = 60
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -339,6 +367,10 @@ resource "aws_lambda_function" "query_devops_incidents_tool" {
   memory_size      = 256
   kms_key_arn      = var.findings_kms_key_arn
 
+  tracing_config {
+    mode = "Active"
+  }
+
   environment {
     variables = {
       NORMALIZED_FINDINGS_TABLE = var.normalized_findings_table_name
@@ -357,6 +389,10 @@ resource "aws_lambda_function" "create_daily_digest_tool" {
   timeout          = 120
   memory_size      = 512
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -377,6 +413,10 @@ resource "aws_lambda_function" "open_remediation_pull_request_tool" {
   timeout          = 120
   memory_size      = 512
   kms_key_arn      = var.findings_kms_key_arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {
@@ -733,6 +773,18 @@ data "aws_iam_policy_document" "agentcore_invoker_policy_document" {
 
     resources = [var.findings_kms_key_arn]
   }
+
+  statement {
+    sid    = "WriteXRayTraceData"
+    effect = "Allow"
+
+    actions = [
+      "xray:PutTraceSegments",
+      "xray:PutTelemetryRecords"
+    ]
+
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "agentcore_invoker_policy" {
@@ -756,6 +808,10 @@ resource "aws_lambda_function" "invoke_agentcore_reasoner" {
   memory_size                    = 512
   kms_key_arn                    = var.findings_kms_key_arn
   reserved_concurrent_executions = var.agentcore_invoker_reserved_concurrency
+
+  tracing_config {
+    mode = "Active"
+  }
 
   environment {
     variables = {

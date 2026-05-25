@@ -138,8 +138,20 @@ resource "aws_s3_bucket" "raw_security_findings_archive" {
   bucket = "${var.organization_name}-${var.environment_name}-${var.platform_name}-raw-security-findings"
 }
 
+resource "aws_s3_bucket" "security_findings_access_logs" {
+  bucket = "${var.organization_name}-${var.environment_name}-${var.platform_name}-security-findings-access-logs"
+}
+
 resource "aws_s3_bucket_versioning" "raw_security_findings_archive_versioning" {
   bucket = aws_s3_bucket.raw_security_findings_archive.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "security_findings_access_logs_versioning" {
+  bucket = aws_s3_bucket.security_findings_access_logs.id
 
   versioning_configuration {
     status = "Enabled"
@@ -157,6 +169,16 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "raw_security_find
   }
 }
 
+resource "aws_s3_bucket_server_side_encryption_configuration" "security_findings_access_logs_encryption" {
+  bucket = aws_s3_bucket.security_findings_access_logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "raw_security_findings_archive_public_access_block" {
   bucket = aws_s3_bucket.raw_security_findings_archive.id
 
@@ -166,11 +188,87 @@ resource "aws_s3_bucket_public_access_block" "raw_security_findings_archive_publ
   restrict_public_buckets = true
 }
 
+resource "aws_s3_bucket_public_access_block" "security_findings_access_logs_public_access_block" {
+  bucket = aws_s3_bucket.security_findings_access_logs.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+data "aws_iam_policy_document" "security_findings_access_logs_policy_document" {
+  statement {
+    sid    = "AllowS3ServerAccessLogDelivery"
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["logging.s3.amazonaws.com"]
+    }
+
+    actions = ["s3:PutObject"]
+
+    resources = ["${aws_s3_bucket.security_findings_access_logs.arn}/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
+    }
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values = [
+        aws_s3_bucket.raw_security_findings_archive.arn,
+        "arn:${data.aws_partition.current.partition}:s3:::${var.organization_name}-${var.environment_name}-${var.platform_name}-prowler-raw-findings"
+      ]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "security_findings_access_logs_policy" {
+  bucket = aws_s3_bucket.security_findings_access_logs.id
+  policy = data.aws_iam_policy_document.security_findings_access_logs_policy_document.json
+}
+
+resource "aws_s3_bucket_logging" "raw_security_findings_archive_access_logging" {
+  bucket        = aws_s3_bucket.raw_security_findings_archive.id
+  target_bucket = aws_s3_bucket.security_findings_access_logs.id
+  target_prefix = "raw-security-findings/"
+
+  depends_on = [
+    aws_s3_bucket_policy.security_findings_access_logs_policy
+  ]
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "raw_security_findings_archive_lifecycle" {
   bucket = aws_s3_bucket.raw_security_findings_archive.id
 
   rule {
     id     = "retain-raw-findings-for-one-year"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    expiration {
+      days = 365
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "security_findings_access_logs_lifecycle" {
+  bucket = aws_s3_bucket.security_findings_access_logs.id
+
+  rule {
+    id     = "retain-access-logs-for-one-year"
     status = "Enabled"
 
     filter {

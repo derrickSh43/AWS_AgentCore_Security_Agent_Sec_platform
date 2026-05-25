@@ -10,6 +10,16 @@ output "raw_findings_archive_bucket_arn" {
   value = aws_s3_bucket.raw_security_findings_archive.arn
 }
 
+output "security_findings_access_logs_bucket_name" {
+  value      = aws_s3_bucket.security_findings_access_logs.bucket
+  depends_on = [aws_s3_bucket_policy.security_findings_access_logs_policy]
+}
+
+output "security_findings_access_logs_bucket_arn" {
+  value      = aws_s3_bucket.security_findings_access_logs.arn
+  depends_on = [aws_s3_bucket_policy.security_findings_access_logs_policy]
+}
+
 output "normalized_findings_table_name" {
   value = aws_dynamodb_table.normalized_security_findings.name
 }

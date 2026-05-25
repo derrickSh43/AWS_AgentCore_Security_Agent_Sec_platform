@@ -47,6 +47,11 @@ variable "raw_findings_archive_bucket" {
   type = string
 }
 
+variable "s3_access_logs_bucket" {
+  type        = string
+  description = "Central bucket for S3 server access logs."
+}
+
 variable "findings_kms_key_arn" {
   type = string
 }
