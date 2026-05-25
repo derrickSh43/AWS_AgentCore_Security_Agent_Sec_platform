@@ -1,0 +1,38 @@
+# Terraform local state and working directories
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.*
+**/crash.log
+**/crash.*.log
+**/*.tfvars
+!**/*.tfvars.example
+!**/*.tfvars.template
+
+# Terraform plan and generated package artifacts
+**/*.tfplan
+**/*.tfplan.json
+build/
+*.zip
+
+# Python local artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Local environment and editor files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

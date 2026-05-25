@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1600">
+<title>EKS Security Operations Platform</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #0d1117;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif;
+    padding: 40px 48px 56px;
+    color: #e6edf3;
+    width: 1600px;
+  }
+
+  /* ── HEADER ── */
+  .header { text-align: center; margin-bottom: 28px; }
+  .header h1 {
+    font-size: 26px; font-weight: 700; letter-spacing: 0.5px;
+    color: #e6edf3; margin-bottom: 6px;
+  }
+  .header p { font-size: 13px; color: #8b949e; letter-spacing: 0.3px; }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex; justify-content: center;
+    gap: 28px; margin-bottom: 32px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #8b949e; }
+  .lbox { width: 22px; height: 14px; border-radius: 4px; }
+  .lbox.current  { background: #1c3a6e; border: 1px solid #388bfd; }
+  .lbox.future   { background: #1a3d24; border: 2px dashed #3fb950; }
+
+  /* ── LAYER WRAPPER ── */
+  .layer {
+    border-radius: 10px; padding: 14px 18px;
+    margin-bottom: 0;
+  }
+  .layer-title {
+    font-size: 9px; font-weight: 800; letter-spacing: 2.5px;
+    text-transform: uppercase; margin-bottom: 12px; padding-left: 2px;
+  }
+  .row { display: flex; gap: 10px; align-items: stretch; }
+  .row.center { justify-content: center; }
+  .row.spread { justify-content: space-between; }
+
+  /* ── BOXES ── */
+  .box {
+    border-radius: 8px; padding: 10px 13px;
+    text-align: center; flex: 1; min-width: 0;
+  }
+  .box-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .box-sub   { font-size: 10px; opacity: 0.72; line-height: 1.5; }
+
+  /* ── ARROW ROWS ── */
+  .arrow-row {
+    display: flex; justify-content: center; align-items: center;
+    height: 36px; position: relative;
+  }
+  .arrow-row::before {
+    content: ''; position: absolute;
+    left: 50%; top: 0; width: 2px; height: 100%;
+    background: linear-gradient(to bottom, #21262d, #30363d);
+  }
+  .arrow-label {
+    position: relative; z-index: 1;
+    background: #161b22; border: 1px solid #30363d;
+    border-radius: 20px; padding: 3px 14px;
+    font-size: 10px; color: #8b949e; letter-spacing: 0.3px;
+  }
+
+  .split-arrow {
+    display: flex; height: 40px;
+    position: relative;
+  }
+  .split-arrow-line {
+    position: absolute; top: 0;
+    width: 2px; background: #30363d;
+  }
+  .split-arrow-horiz {
+    position: absolute; top: 50%;
+    height: 2px; background: #30363d;
+  }
+
+  /* ── LAYER COLORS ── */
+
+  /* Detection */
+  .l-detect { background: #0c1825; border: 1px solid #1c3a5c; }
+  .l-detect .layer-title { color: #388bfd; }
+  .b-detect { background: #1c3a6e; border: 1px solid #388bfd; color: #cae8ff; }
+  .b-future { background: #1a3d24; border: 2px dashed #3fb950; color: #aff5b4; }
+
+  /* Normalization */
+  .l-norm { background: #161205; border: 1px solid #3d2f00; }
+  .l-norm .layer-title { color: #e3b341; }
+  .b-norm { background: #2e2000; border: 1px solid #7d5a00; color: #ffd166; }
+
+  /* Pipeline */
+  .l-pipe { background: #15100a; border: 1px solid #3d2010; }
+  .l-pipe .layer-title { color: #f0883e; }
+  .b-pipe { background: #3d1f00; border: 1px solid #9b4614; color: #ffb86c; }
+
+  /* AI */
+  .l-ai { background: #110d1a; border: 1px solid #2d1f4e; }
+  .l-ai .layer-title { color: #d2a8ff; }
+  .b-ai { background: #2d1f5e; border: 1px solid #8957e5; color: #dbb8ff; }
+  .b-ai-tool { background: #1f1433; border: 1px solid #6e40c9; color: #c8a8ff; }
+
+  /* Visibility */
+  .l-vis { background: #150d0d; border: 1px solid #3d1515; }
+  .l-vis .layer-title { color: #f85149; }
+  .b-vis { background: #3d0d0d; border: 1px solid #a61c1c; color: #ffb3b3; }
+
+  /* GitOps */
+  .l-git { background: #0c1a2e; border: 1px solid #1c4068; }
+  .l-git .layer-title { color: #79c0ff; }
+  .b-git { background: #0d2745; border: 1px solid #1a6091; color: #96d8ff; }
+
+  /* ── SPECIAL LAYOUTS ── */
+
+  .norm-row { display: flex; gap: 10px; align-items: center; }
+  .norm-lambdas { flex: 2; }
+  .norm-enrichment { flex: 1; display: flex; gap: 10px; }
+
+  .ai-inner { display: flex; gap: 14px; align-items: flex-start; }
+  .ai-main  { display: flex; flex-direction: column; gap: 8px; flex: 0 0 340px; }
+  .ai-flow  { display: flex; align-items: center; gap: 8px; }
+  .ai-connector { font-size: 16px; color: #8957e5; font-weight: bold; }
+
+  .tools-section { flex: 1; }
+  .tools-title {
+    font-size: 9px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase; color: #8957e5;
+    margin-bottom: 8px; padding-left: 2px;
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .b-ai-tool .box-title { font-size: 11px; }
+
+  .bottom-split {
+    display: flex; gap: 16px;
+  }
+  .bottom-split .layer { flex: 1; }
+
+  .git-flow {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .git-arrow {
+    color: #388bfd; font-size: 20px; font-weight: bold; flex-shrink: 0;
+    padding-top: 8px;
+  }
+
+  .divider {
+    width: 2px; background: #8957e5;
+    margin: 0 4px; align-self: stretch; flex-shrink: 0;
+    border-radius: 2px;
+  }
+
+  /* pipe special */
+  .pipe-row { display: flex; gap: 10px; }
+  .pipe-row .b-pipe, .pipe-row .b-future { flex: 1; }
+
+  /* split arrows for bottom */
+  .fork-container {
+    position: relative; height: 44px;
+    display: flex; align-items: flex-end;
+    justify-content: center;
+  }
+  .fork-vert {
+    position: absolute; left: 50%; top: 0;
+    width: 2px; height: 50%; background: #30363d;
+    transform: translateX(-50%);
+  }
+  .fork-horiz {
+    position: absolute; top: 50%;
+    height: 2px; background: #30363d;
+  }
+  .fork-down-left {
+    position: absolute; top: 50%;
+    width: 2px; background: #30363d;
+    height: 50%;
+  }
+  .fork-down-right {
+    position: absolute; top: 50%;
+    width: 2px; background: #30363d;
+    height: 50%;
+  }
+
+  .two-col { display: flex; gap: 16px; }
+  .two-col > * { flex: 1; }
+
+  .spacer { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>EKS Security Operations Platform</h1>
+  <p>Detection · Enrichment · Normalization · AI Reasoning · GitOps Remediation</p>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="lbox current"></div> Current Build</div>
+  <div class="legend-item"><div class="lbox future"></div> Future Addition</div>
+</div>
+
+
+<!-- ═══ DETECTION LAYER ═══ -->
+<div class="layer l-detect">
+  <div class="layer-title">Detection Layer</div>
+  <div class="row">
+    <div class="box b-detect">
+      <div class="box-title">Falco</div>
+      <div class="box-sub">Runtime Detection<br>eBPF · EKS DaemonSet</div>
+    </div>
+    <div class="box b-detect">
+      <div class="box-title">Prowler</div>
+      <div class="box-sub">Cloud Posture<br>K8s CronJob · 12hr</div>
+    </div>
+    <div class="box b-detect">
+      <div class="box-title">Snyk</div>
+      <div class="box-sub">Code &amp; IaC<br>GitHub Webhook</div>
+    </div>
+    <div class="box b-detect">
+      <div class="box-title">AWS Security Agent</div>
+      <div class="box-sub">Automated Pen-Test<br>Weekly Schedule</div>
+    </div>
+    <div class="box b-detect">
+      <div class="box-title">AWS DevOps Agent</div>
+      <div class="box-sub">Operational Context<br>Managed Service</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">Trivy · ECR</div>
+      <div class="box-sub">Image Scanning<br>Registry + CI Pipeline</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">EBS Snapshot</div>
+      <div class="box-sub">Agentless Node<br>Scanning</div>
+    </div>
+  </div>
+</div>
+
+<!-- arrow -->
+<div class="arrow-row">
+  <span class="arrow-label">CloudWatch Logs &nbsp;·&nbsp; S3 JSON &nbsp;·&nbsp; API Gateway &nbsp;·&nbsp; EventBridge</span>
+</div>
+
+
+<!-- ═══ NORMALIZATION + ENRICHMENT ═══ -->
+<div class="layer l-norm">
+  <div class="layer-title">Normalization &amp; Enrichment</div>
+  <div class="row">
+    <div class="box b-norm" style="flex:3">
+      <div class="box-title">Normalizer Lambdas</div>
+      <div class="box-sub">Falco · Prowler · Snyk · Security Agent · DevOps Agent · Trivy · EBS<br>
+      Translate every source into a single finding schema → Archive raw payload to S3 → Write to DynamoDB → Publish to EventBridge</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">CVE Watch Lambda</div>
+      <div class="box-sub">CISA KEV · NVD<br>Daily Schedule<br>Active Exploit Feed</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">Cartography</div>
+      <div class="box-sub">IAM Identity Graph<br>K8s CronJob<br>Blast Radius Mapping</div>
+    </div>
+  </div>
+</div>
+
+<!-- arrow -->
+<div class="arrow-row">
+  <span class="arrow-label">Normalized findings &nbsp;·&nbsp; Raw archive &nbsp;·&nbsp; Events</span>
+</div>
+
+
+<!-- ═══ FINDINGS PIPELINE ═══ -->
+<div class="layer l-pipe">
+  <div class="layer-title">Findings Pipeline</div>
+  <div class="row">
+    <div class="box b-pipe">
+      <div class="box-title">S3 Raw Archive</div>
+      <div class="box-sub">Immutable Payload Store<br>1yr Retention · KMS</div>
+    </div>
+    <div class="box b-pipe">
+      <div class="box-title">DynamoDB</div>
+      <div class="box-sub">Normalized Findings<br>KMS Encrypted · PITR</div>
+    </div>
+    <div class="box b-pipe">
+      <div class="box-title">EventBridge</div>
+      <div class="box-sub">Custom Security Bus<br>Event Fan-out</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">DynamoDB</div>
+      <div class="box-sub">CVE Watchlist<br>Active Exploits Table</div>
+    </div>
+    <div class="box b-future">
+      <div class="box-title">Neo4j · Neptune</div>
+      <div class="box-sub">Identity Graph DB<br>Blast Radius Paths</div>
+    </div>
+    <div class="box b-pipe">
+      <div class="box-title">SQS DLQ</div>
+      <div class="box-sub">Failed Event<br>Dead Letter Queue</div>
+    </div>
+  </div>
+</div>
+
+<!-- arrow -->
+<div class="arrow-row">
+  <span class="arrow-label">Critical &amp; High findings on EventBridge → Invoker &nbsp;·&nbsp; Daily 8AM schedule → Invoker &nbsp;·&nbsp; DynamoDB Streams → SIEM</span>
+</div>
+
+
+<!-- ═══ AI REASONING LAYER ═══ -->
+<div class="layer l-ai">
+  <div class="layer-title">AI Reasoning Layer</div>
+  <div class="ai-inner">
+
+    <!-- Left: flow -->
+    <div class="ai-main">
+      <div class="box b-ai">
+        <div class="box-title">AgentCore Invoker Lambda</div>
+        <div class="box-sub">Triggered by critical findings<br>or daily 8AM schedule</div>
+      </div>
+      <div style="text-align:center; color:#8957e5; font-size:20px; font-weight:bold;">↕</div>
+      <div class="box b-ai">
+        <div class="box-title">AgentCore Reasoning Runtime</div>
+        <div class="box-sub">LLM-powered container<br>Correlates findings across all sources<br>Reasons · Prioritizes · Proposes</div>
+      </div>
+      <div style="text-align:center; color:#8957e5; font-size:20px; font-weight:bold;">↕</div>
+      <div class="box b-ai">
+        <div class="box-title">AgentCore MCP Gateway</div>
+        <div class="box-sub">AWS IAM Auth · MCP Protocol<br>Exposes tool Lambdas to the agent</div>
+      </div>
+    </div>
+
+    <!-- divider -->
+    <div class="divider"></div>
+
+    <!-- Right: tools -->
+    <div class="tools-section">
+      <div class="tools-title">MCP Tool Lambdas</div>
+      <div class="tools-grid">
+        <div class="box b-ai-tool"><div class="box-title">query_falco</div><div class="box-sub">Runtime findings</div></div>
+        <div class="box b-ai-tool"><div class="box-title">query_prowler</div><div class="box-sub">Posture findings</div></div>
+        <div class="box b-ai-tool"><div class="box-title">query_snyk</div><div class="box-sub">Code findings</div></div>
+        <div class="box b-ai-tool"><div class="box-title">query_security_agent</div><div class="box-sub">Pentest results</div></div>
+        <div class="box b-ai-tool"><div class="box-title">query_devops</div><div class="box-sub">Ops context</div></div>
+        <div class="box b-ai-tool"><div class="box-title">daily_digest</div><div class="box-sub">Prioritized summary</div></div>
+        <div class="box b-future"><div class="box-title">query_cve_watchlist</div><div class="box-sub">Active exploits</div></div>
+        <div class="box b-future"><div class="box-title">query_identity_graph</div><div class="box-sub">Blast radius</div></div>
+        <div class="box b-ai-tool"><div class="box-title">open_remediation_pr</div><div class="box-sub">Propose fix via PR</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- arrow -->
+<div class="arrow-row">
+  <span class="arrow-label">PR proposal &nbsp;·&nbsp; All findings → Dashboard &amp; SIEM</span>
+</div>
+
+
+<!-- ═══ GITOPS + VISIBILITY (split) ═══ -->
+<div class="two-col">
+
+  <!-- GitOps -->
+  <div class="layer l-git" style="flex:2">
+    <div class="layer-title">GitOps Boundary — only path to cluster change</div>
+    <div class="git-flow">
+      <div class="box b-git" style="flex:1">
+        <div class="box-title">Pull Request</div>
+        <div class="box-sub">Human Review Required<br>Code Owner Approval<br>Branch Protection Enforced</div>
+      </div>
+      <div class="git-arrow">→</div>
+      <div class="box b-git" style="flex:1">
+        <div class="box-title">ArgoCD</div>
+        <div class="box-sub">Manual Sync Only<br>Git → Cluster State<br>No Automated Apply</div>
+      </div>
+      <div class="git-arrow">→</div>
+      <div class="box b-git" style="flex:1">
+        <div class="box-title">EKS Cluster</div>
+        <div class="box-sub">Desired State Applied<br>Only via Approved<br>Git Commit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Visibility -->
+  <div class="layer l-vis" style="flex:1">
+    <div class="layer-title">Visibility Layer</div>
+    <div class="row">
+      <div class="box b-vis">
+        <div class="box-title">DefectDojo</div>
+        <div class="box-sub">Security Dashboard<br>Engineer Review<br>EKS · Helm</div>
+      </div>
+      <div class="box b-future">
+        <div class="box-title">Splunk · Datadog</div>
+        <div class="box-sub">SIEM · Dashboards<br>Alerts · Compliance<br>Reports</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

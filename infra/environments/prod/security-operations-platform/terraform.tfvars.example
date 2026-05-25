@@ -1,0 +1,65 @@
+# This example is conservative by default.
+# Terraform packages the included Lambda handlers locally.
+# AgentCore is the only layer that still needs a pushed container image before it can be enabled.
+
+organization_name = "acme"
+environment_name  = "prod"
+platform_name     = "eks-secops"
+aws_region        = "us-east-1"
+
+configuration_repository_name = "platform-infra"
+
+existing_eks_cluster_name      = "acme-prod-eks"
+existing_eks_oidc_provider_arn = "arn:aws:iam::111122223333:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE"
+existing_eks_oidc_provider_url = "oidc.eks.us-east-1.amazonaws.com/id/EXAMPLE"
+
+# Deployable layers. Snyk needs GitHub/Snyk secrets. AgentCore needs a pushed reasoner image.
+enable_falco_runtime_detection         = true
+enable_prowler_posture_scanning        = true
+enable_snyk_pull_request_scanning      = false
+enable_engineer_security_dashboard     = true
+enable_agentcore_reasoning_layer       = false
+enable_security_agent_pentesting       = false
+enable_devops_agent_operations_context = true
+enable_argocd_gitops_boundary          = true
+
+# Optional: enable after you decide Terraform should bootstrap ArgoCD into the existing cluster.
+argocd_git_repository_url    = "https://github.com/acme/application-manifests.git"
+argocd_git_revision          = "main"
+argocd_application_path      = "clusters/prod"
+argocd_enable_automated_sync = false
+
+# Optional: enable after GitHub/Snyk secrets are available.
+github_owner                = null
+github_repository_full_name = null
+github_repository_name      = null
+github_default_branch       = "main"
+github_token                = null
+github_webhook_secret       = null
+snyk_token                  = null
+
+# Optional: enable AgentCore after this image is built and pushed.
+agentcore_reasoner_container_uri = null
+
+# Optional: override Terraform's generated local Lambda package.
+lambda_package_path_falco_normalizer            = null
+lambda_package_path_prowler_normalizer          = null
+lambda_package_path_snyk_normalizer             = null
+lambda_package_path_agentcore_tools             = null
+lambda_package_path_agentcore_invoker           = null
+lambda_package_path_security_agent_orchestrator = null
+lambda_package_path_devops_agent_ingestor       = null
+
+# Optional: dashboard custom domain.
+dashboard_domain_name     = null
+dashboard_certificate_arn = null
+
+# Optional: automatic DefectDojo import from normalizer Lambdas.
+# Leave empty for manual review/import in DefectDojo.
+defectdojo_api_url       = ""
+defectdojo_api_token     = ""
+defectdojo_engagement_id = ""
+defectdojo_lead_id       = ""
+
+# Optional: only use domains approved for AWS Security Agent testing.
+security_agent_verified_target_domains = []
