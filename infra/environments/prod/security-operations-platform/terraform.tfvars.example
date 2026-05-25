@@ -61,5 +61,8 @@ defectdojo_api_token     = ""
 defectdojo_engagement_id = ""
 defectdojo_lead_id       = ""
 
+# Optional: subscribe an email address to CloudWatch alarm notifications.
+alarm_notification_email = null
+
 # Optional: only use domains approved for AWS Security Agent testing.
 security_agent_verified_target_domains = []

@@ -72,6 +72,7 @@ Security hardening included in this version:
 
 Start with:
 
+- [SETUP.md](SETUP.md) for step-by-step install instructions.
 - [infra/README.md](infra/README.md) for the architecture and module layout.
 - [infra/PLATFORM.md](infra/PLATFORM.md) for the full platform design and roadmap.
 - [prod environment README](infra/environments/prod/security-operations-platform/README.md) for deployment details.
